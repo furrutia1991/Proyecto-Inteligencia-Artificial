@@ -8,7 +8,7 @@ from django.template import	Context
 from datetime import datetime
 from django.shortcuts import render_to_response
 from models import *
-from django.shortcuts import get_objects_or_404
+# from django.shortcuts import get_objects_or_404
 
 def categoria(request, id_categoria):
 	categorias = Categoria.objects.all()
@@ -32,8 +32,6 @@ def plus(request, id_enlace):
 
 
 def home(request):
-	categorias = Categoria.objects.all()
-	enlaces = Enlace.objects.all()
 	template = "index.html"
 	# diccionario = {"categorias": categorias,"enlaces": enlaces}
 	return render_to_response(template,locals())
