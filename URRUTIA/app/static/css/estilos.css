@@ -190,6 +190,11 @@ table
 	background-color: transparent;
 }
 
+td
+{
+	text-align: center;
+}
+
 #p
 {
 	color: white;

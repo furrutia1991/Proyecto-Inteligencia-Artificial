@@ -3,7 +3,8 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>SuDoKu</title>
+	<title>SudoKu</title>
+	<script type="text/javascript" src="/static/js/sudoku.js"></script>
 	<link rel="stylesheet" href="/static/css/bootstrap.css">
 	<link rel="stylesheet" href="/static/css/estilos.css">
 </head>
@@ -45,13 +46,19 @@
 		<figure id="sudoku">
 			<h2>SUDOKU</h2>
 				<ul>
-					<li><strong>Nivel de dificultad:</strong><a href="#" class="btn btn-success">	Facil</a><a href="#"class="btn btn-success">	Intermedio</a><a href="#" class="btn btn-success">	Dificil</a></li>
+					<li>
+						<strong>Nivel de dificultad:</strong>
+						<input onClick="reset();game.runEasy()" class="btn btn-success" value="Facil" size="8px"/>
+						<input onClick="reset();game.runMedium()" class="btn btn-success" value="Intermedio" size="8px"/>
+						<input onClick="reset();game.runHard()" class="btn btn-success" value="Dificil" size="8px"/>
+					</li>
 				</ul>
 
 
 
 <div id="div-board" class="div-board">
 <center>
+	<form method="post" action="" name="frmGrid" id="frmGrid">
 	<table id="table0" class="table-main" cellspacing="0" cellpadding="0">
 		<tr>
 		<td>
@@ -240,7 +247,9 @@
 
 	</table>
 
-<input id="bn-validate" type="button" class="bn-validate" onClick="game.validate()" value="Validar!" name="bn-validate"/>
+	<input id="bn-validate" type="button" class="bn-validate" onClick="game.validate()" value="Validar!" name="bn-validate"/>
+	<input id="bn-reset" type="reset" class="bn-validate" value="Limpiar" name="bn-reset"/>
+</form>
 
 </center>
 </div>
@@ -250,240 +259,10 @@
 
 <nav>
 	<ul>
-		<li><a href="{%url "home"%}">Nuevo Juego</a></li>
-		<li><a href="#">Reiniciar Juego</a></li>
-		<li><a href="#">Resolver Juego</a></li>
+		<li onClick="window.location.reload(true)"><a href="#">Nuevo Juego</a></li>
+		<li onClick="game.solve()" ><a href="#">Resolver Juego</a></li>
 	</ul>
 </nav>
-
-
-
-
-
-
-<script type="text/javascript">
-
-//
-// Game
-//
-function Game() {
-  this.board = new Board();
-
-  this.run = function() {
-    this.board.start();
-  }
-  
-  this.validate = function() {
-    this.board.validate();
-  }
-}
-
-//
-// Board
-//
-function Board() {
-  this.grid   = new Grid();
-  this.sudoku = new Array();
-
-  this.start = function() {
-    this.generateSudoku();
-    this.showTips();
-  }
-
-  this.generateSudoku = function() {
-    this.initSudoku();
-    this.generateCell(0);
-  }
-
-  this.initSudoku = function() {
-    for (var row = 0; row < this.grid.rows; ++ row)
-      this.sudoku[row] = new Array(this.grid.cols);
-  }
-
-  this.generateCell = function(id) {
-    if (id == this.grid.rows * this.grid.cols) 
-      return(true);
-    
-    var row  = Math.floor(id / this.grid.rows);
-    var col  = id - (row * this.grid.rows)
-    var suit = this.shuffle(this.grid.suit);
-    
-    for (var index in suit) {
-      this.sudoku[row][col] = suit[index];
-
-      if ( this.isValidCell(row, col) )
-        if ( this.generateCell(id + 1) )
-          return(true);
-    }
-
-    this.sudoku[row][col] = null;
-    return(false);
-  }
-
-  this.isValidCell = function(row, col) {
-    return( this.isValidRow(row, col) &&
-            this.isValidColumn(row, col) &&
-            this.isValidRegion(row, col) );
-  }
-
-  this.isValidRow = function(row, col) {
-    var count = new Array();
-    for (var c = 0; c <= col; ++ c) {
-      if (count[ this.sudoku[row][c] ] != null)
-        return(false);
-      count[ this.sudoku[row][c] ] = 1;
-    }
-    return(true);
-  }
-
-  this.isValidColumn = function(row, col) {
-    var count = new Array();
-    for (var r = 0; r <= row; ++ r) {
-      if (count[ this.sudoku[r][col] ] != null)
-        return(false);
-      count[ this.sudoku[r][col] ] = 1;
-    }
-    return(true);
-  }
-  
-  this.isValidRegion = function(row, col) {
-    var count = new Array();
-    var rowi  = this.grid.region * Math.floor(row / this.grid.region);
-    var coli  = this.grid.region * Math.floor(col / this.grid.region);
-
-    for (var r = rowi; r <= row; ++ r)
-      for (var c = coli; c <= col; ++ c) {
-        if ( count[ this.sudoku[r][c] ] != null)
-          return(false);
-        count[ this.sudoku[r][c] ] = 1;
-      }
-
-    return(true);
-  }
-
-  this.showTips = function() {
-    var spans = this.shuffle(this.grid.spans);
-    for (var row = 0; row < this.grid.rows; ++ row) {
-      var tips = this.shuffle(this.grid.tips);
-      for (var col = 0; col < spans[row]; ++ col)
-        this.grid.setCellValue(row, tips[col], this.sudoku[row][ tips[col] ]);
-    }
-  }
-
-  this.validate = function() {
-    if ( this.isValidSudoku() )
-      alert("FELICITACIONES!!! Has logrado solventar el SuDoKu.");
-    else
-      alert("Lo siento, esta no es un respuesta valida para el SuDoKu.");
-  }
-
-  this.isValidSudoku = function() {
-    var cells = this.grid.getCellValues();
-
-    var valid = true;
-    for (var row in this.sudoku)
-      for (var col in this.sudoku[row])
-        if (cells[row][col] != this.sudoku[row][col]) {
-          valid = false;
-          break;
-        }
-        
-    return(valid);
-  }
-
-  this.shuffle = function(suit) {
-    for (var i in suit)
-      suit = swap(suit, i, Math.floor( Math.random() * suit.length ) );
-    return(suit);
-  }
-}
-
-//
-// Grid
-//
-function Grid() {
-  this.rows   = 9;
-  this.cols   = 9;
-  this.region = 3;
-  this.spans  = new Array(4, 4, 4, 3, 3, 3, 2, 2, 2);
-  this.tips   = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8);
-  this.suit   = new Array(1, 2, 3, 4, 5, 6, 7, 8, 9);
-
-  this.getCellId = function(row, col) {
-    return("c" + String( (row * this.rows) + col) );
-  }
-
-  this.getCell = function(id) {
-    return( document.getElementById(id) );
-  }
-
-  this.getCellValue = function(row, col) {
-    return( this.getCellValueById( this.getCellId(row, col) ) );
-  }
-
-  this.getCellValueById = function(id) {
-    return( this.getCell(id).value );
-  }
-
-  this.setCellValue = function(row, col, value) {
-    this.setCellValueById( this.getCellId(row, col), value);
-  }
-  
-  this.setCellValueById = function(id, value) {
-    var cell = this.getCell(id);
-    cell.value     = String(value);
-    cell.className = "cell-disable";
-    cell.readOnly  = "readonly";
-  }
-
-  this.getCellValues = function() {
-    var cells = new Array();
-
-    for (var row = 0; row < this.rows; ++ row) {
-      cells[row] = new Array();
-      for (var col = 0; col < this.cols; ++ col)
-        cells[row][col] = this.getCellValue(row, col);
-    }
-
-    return(cells);
-  }
-}
-
-//
-// Utils
-//
-function swap(array, i, j) {
-  var temp = array[i];
-  array[i] = array[j];
-  array[j] = temp;
-
-  return(array);
-}
-
-function getKeyCode(e) {
-  return(e? e.keyCode: window.event.keyCode);
-}
-
-//
-//
-document.onkeydown = function(e){
-  if( getKeyCode(e) == 116) {
-     window.location.reload(true);
-     return(false);
-    }
-}
-
-//
-//
-var game = new Game;
-game.run();
-
-</script>
-
-
-
-
-
 
 </body>
 </html>
